@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ScrollGuard</string>
+    <string name="service_label">ScrollGuard reel counter</string>
+    <string name="service_description">Counts the reels you swipe through in Instagram, YouTube Shorts and TikTok, shows the count on screen, and enforces your limits and night lock. Nothing leaves your phone.</string>
+</resources>
