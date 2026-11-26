@@ -24,6 +24,48 @@ and TikTok. It shows the count on screen and helps you stop doomscrolling.
 ScrollGuard uses an Android **Accessibility Service** (`ReelWatchService`) to read the screen of
 the supported apps:
 
+```mermaid
+flowchart TD
+    Apps["Instagram · YouTube · TikTok<br/><small>screen change events</small>"]
+    Service["ReelWatchService<br/><small>accessibility service, the core</small>"]
+    Detector["ReelDetector<br/><small>which reel is on</small>"]
+    Night["NightLock<br/><small>night hours check</small>"]
+    Prefs["Prefs<br/><small>counts and limits</small>"]
+    Overlays["Overlays<br/><small>pill and panels</small>"]
+    Face["FaceView<br/><small>Blobby's face</small>"]
+    Main["MainActivity<br/><small>settings screen</small>"]
+
+    Apps --> Service
+    Service --> Detector
+    Service --> Night
+    Service --> Prefs
+    Service --> Overlays
+    Overlays --> Face
+    Overlays -. "Lock / Open app" .-> Service
+    Main --> Prefs
+
+    classDef logic fill:#EEEDFE,stroke:#534AB7,color:#3C3489
+    classDef ui fill:#E1F5EE,stroke:#0F6E56,color:#085041
+    classDef ext fill:#F1EFE8,stroke:#5F5E5A,color:#444441
+    class Service,Detector,Night,Prefs logic
+    class Overlays,Face,Main ui
+    class Apps ext
+```
+
+Each time the screen changes in a supported app:
+
+1. `ReelWatchService` gets the event. Other apps are ignored, and checks are spaced at least
+   250 ms apart.
+2. If `NightLock` says it's night, or a 30-minute quick lock is running, the service presses Back
+   or Home.
+3. Otherwise, if a reel player is showing and the reel is new, `Prefs` adds one to the count.
+4. `Overlays` updates the pill, and shows the limit panel when a limit is reached.
+
+`MainActivity` (the app screen) never talks to the service directly. Both read and write the same
+`Prefs`.
+
+Each part in more detail:
+
 - `ReelDetector` checks whether the reel player is on screen and works out which reel is
   showing, from its position in the feed and its author. Each new reel counts once.
 - `Overlays` draws the pill, the panels and messages as accessibility overlays. They don't need
